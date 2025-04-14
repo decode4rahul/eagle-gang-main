@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
 
 interface UploadAreaProps {
-  onUploadComplete: (fileName: string) => void;
+  onUploadComplete: (fileName: string, projectId?: string) => void;
+  projectData?: any;
 }
 
-export default function UploadArea({ onUploadComplete }: UploadAreaProps) {
+export default function UploadArea({ onUploadComplete, projectData }: UploadAreaProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -67,33 +69,68 @@ export default function UploadArea({ onUploadComplete }: UploadAreaProps) {
     }
 
     setUploadedFile(file);
-    simulateUpload(file);
+    uploadFile(file);
   };
 
-  const simulateUpload = (file: File) => {
+  const uploadFile = async (file: File) => {
     setIsUploading(true);
     setUploadProgress(0);
 
-    const duration = 3000; // 3 seconds for simulation
-    const interval = 100; // Update every 100ms
-    const steps = duration / interval;
-    let currentStep = 0;
+    try {
+      // Start progress animation
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          // Cap at 90% until we get actual confirmation
+          if (prev < 90) {
+            return prev + 5;
+          }
+          return prev;
+        });
+      }, 200);
 
-    const timer = setInterval(() => {
-      currentStep++;
-      const newProgress = Math.min(Math.round((currentStep / steps) * 100), 100);
-      setUploadProgress(newProgress);
+      // This is where we actually upload the file
+      const response = await api.uploadFile('/projects', file, projectData || {
+        title: file.name.replace('.zip', ''),
+        description: 'Uploaded project',
+        language: 'Unknown',
+        techStack: [],
+        tags: []
+      });
 
-      if (currentStep >= steps) {
-        clearInterval(timer);
-        setIsUploading(false);
+      clearInterval(progressInterval);
+
+      if (response.error) {
+        setError(response.error);
+        setUploadProgress(0);
+        toast({
+          title: "Upload Failed",
+          description: response.error,
+          variant: "destructive",
+        });
+      } else {
+        setUploadProgress(100);
         toast({
           title: "Upload Complete",
           description: `${file.name} has been uploaded successfully.`,
         });
-        onUploadComplete(file.name);
+        
+        // Pass the file name and project ID back to parent
+        if (response.data) {
+          onUploadComplete(file.name, response.data.id);
+        } else {
+          onUploadComplete(file.name);
+        }
       }
-    }, interval);
+    } catch (err) {
+      setError("Upload failed. Please try again.");
+      toast({
+        title: "Upload Failed",
+        description: "An unexpected error occurred during upload.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const cancelUpload = () => {

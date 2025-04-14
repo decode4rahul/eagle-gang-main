@@ -1,16 +1,12 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   Archive,
-  BarChart2,
   FileCode,
-  Grid,
   Home,
   Plus,
   Settings,
-  Tag,
   User
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -73,30 +69,9 @@ export default function Sidebar({ isOpen, className }: SidebarProps) {
               label="My Projects"
             />
             <SidebarLink
-              href="/templates"
-              icon={<Grid className="h-4 w-4" />}
-              label="Templates"
-            />
-            <SidebarLink
               href="/archive"
               icon={<Archive className="h-4 w-4" />}
               label="Archive"
-            />
-          </div>
-
-          <div className="mt-8 space-y-1">
-            <div className="px-3 text-xs font-semibold text-muted-foreground">
-              Analytics
-            </div>
-            <SidebarLink
-              href="/analytics"
-              icon={<BarChart2 className="h-4 w-4" />}
-              label="Statistics"
-            />
-            <SidebarLink
-              href="/tags"
-              icon={<Tag className="h-4 w-4" />}
-              label="Tags"
             />
           </div>
 

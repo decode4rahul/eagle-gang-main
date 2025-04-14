@@ -32,18 +32,26 @@ export interface Project {
   tags: string[];
   date: Date;
   fileName: string;
+  filePath?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  fileSize?: number;
+  fileType?: string;
+  archived?: boolean;
 }
 
 interface ProjectListProps {
   projects: Project[];
   onDeleteProject: (id: string) => void;
   onEditProject: (id: string) => void;
+  onDownloadProject?: (id: string) => void;
 }
 
 export default function ProjectList({ 
   projects, 
   onDeleteProject, 
-  onEditProject 
+  onEditProject,
+  onDownloadProject
 }: ProjectListProps) {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchTerm, setSearchTerm] = useState("");
@@ -144,6 +152,7 @@ export default function ProjectList({
               project={project}
               onDelete={onDeleteProject}
               onEdit={onEditProject}
+              onDownload={onDownloadProject}
             />
           ))}
         </div>
